@@ -51,6 +51,7 @@
     
     #header{
       color: var(--text-color);
+      font-weight: lighter;
       margin-top: 10px;
       margin-bottom: 0;
     }
@@ -61,7 +62,7 @@
     
     .label{
       color: var(--text-color);
-      font-weight: 600;
+      font-weight: lighter;
       font-size: 14px;
       margin-bottom: 5px;
       display: block;
@@ -73,10 +74,10 @@
       background: var(--bg-color);
       border: var(--border-color) solid 0.5px;
       border-radius: 2px;
+      font-weight: lighter;
       color: var(--text-color);
       outline: none;
       font-size: 15px;
-      text-transform: capitalize;
       font-family: 'Poppins', sans-serif;
       box-sizing: border-box;
     }
@@ -98,7 +99,7 @@
     
     .submit{
       width: 100%;
-      padding: 10px 12px;
+      padding: 8px 10px;
       background-color: var(--button-bg-color);
       color: var(--button-text-color);
       border: none;
@@ -126,7 +127,7 @@
   <div class="container">
     <div class="logo">
       <img src="https://avatars.githubusercontent.com/u/62596924?v=4" id="logo-img"/>
-      <h3 id="header">Quick Job Save</h3>
+      <h3 id="header">Track an application</h3>
     </div>
     
     <div class="input-group">
@@ -143,6 +144,10 @@
       <label class="label">Job Description</label>
       <textarea class="input-field" id="description" placeholder="eg. working with llms"></textarea>
     </div>
+    
+    <div class="input-group">
+      <label class="label">URL</label>
+      <input type= "url" class="input-field" id="description" placeholder="https://c3.ai/..." />   </div>
     
     <button class="submit" id="submit">Save</button>
   </div>
