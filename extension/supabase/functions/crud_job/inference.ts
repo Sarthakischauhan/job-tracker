@@ -30,8 +30,9 @@ export default async function getJobDetails(apiKey: string, description: string)
         Job Description:
         ${description}
         
-        Return only valid JSON without any additional text.
-        `;
+        Return only valid JSON without any additional text. You must return a JSON string and not text or mardown text. 
+        `
+        ;
         
         // Send the data to OpenAI to get relevant data
         const response = await openai.chat.completions.create({
@@ -52,13 +53,18 @@ export default async function getJobDetails(apiKey: string, description: string)
         });
 
         const content = response.choices[0]?.message?.content;
-        
+    
         if (!content) {
             throw new Error('No content returned from OpenAI');
         }
 
+        const cleaned = content
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim();
+
         // Parse and return the JSON response
-        return JSON.parse(content.trim());
+        return JSON.parse(cleaned);
         
     } catch (error) {
         console.error('OpenAI inference failed:', error);
