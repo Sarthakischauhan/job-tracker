@@ -2,9 +2,12 @@
   "manifest_version": 3,
   "name": "Job Tracker Quick Logger",
   "version": "1.0",
-  "permissions": ["tabs", "scripting", "storage"],
+  "permissions": ["tabs", "scripting", "storage", "contextMenus"],
   "action": {
     "default_popup": "popup.html"
   },
-  "host_permissions": ["<all_urls>"]
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  }
 }

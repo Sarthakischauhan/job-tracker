@@ -67,6 +67,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  chrome.storage.local.get(["jobDescriptionFromContext"], (result) => {
+    if (result.jobDescriptionFromContext) {
+      document.getElementById("description").value = result.jobDescriptionFromContext;
+
+      // Clear the context value
+      chrome.storage.local.remove("jobDescriptionFromContext");
+    }
+  });
 
   // Button click handler
   submitBtn.addEventListener("click", async () => {
