@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { createClient } from "@supabase/supabase-js"
 import { Plus, Search, ExternalLink, MoreHorizontal, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -48,6 +48,7 @@ const skillColors = [
   "bg-cyan-500",
 ]
 
+// Get a random color for skill
 const getSkillColor = (skill: string) => {
   const index = skill.charCodeAt(0) % skillColors.length
   return skillColors[index]
@@ -57,10 +58,12 @@ export default function JobTracker() {
   const [jobs, setJobs] = useState<JobApplication[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedJobs, setSelectedJobs] = useState<string[]>([])
+  const selectedJobs= useRef<string[]>([])
+  const [_, dummyRender] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [openJob, setOpenJob] = useState<JobApplication | null>(null)
+
 
   useEffect(() => {
     fetchJobs()
@@ -95,18 +98,21 @@ export default function JobTracker() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedJobs(paginatedJobs.map((job) => job.id))
+      selectedJobs.current = paginatedJobs.map((job) => job.id)
     } else {
-      setSelectedJobs([])
+      selectedJobs.current = []
     }
+    dummyRender((n) => n+1)
   }
 
+  // Runs for clicked/selected job
   const handleSelectJob = (jobId: string, checked: boolean) => {
     if (checked) {
-      setSelectedJobs([...selectedJobs, jobId])
+      selectedJobs.current = [...selectedJobs.current, jobId]
     } else {
-      setSelectedJobs(selectedJobs.filter((id) => id !== jobId))
+      selectedJobs.current = selectedJobs.current.filter((currentJobId) => jobId !== currentJobId)
     }
+    dummyRender((n) => n+1)
   }
 
   const formatDate = (dateString: string) => {
@@ -162,7 +168,7 @@ export default function JobTracker() {
               <TableRow className="border-white/20 hover:bg-transparent">
                 <TableHead className="w-12 text-white/60">
                   <Checkbox
-                    checked={selectedJobs.length === paginatedJobs.length && paginatedJobs.length > 0}
+                    checked={selectedJobs.current.length === paginatedJobs.length && paginatedJobs.length > 0}
                     onCheckedChange={handleSelectAll}
                     className="border-white/30 data-[state=checked]:bg-white data-[state=checked]:text-black"
                   />
@@ -196,7 +202,7 @@ export default function JobTracker() {
                 <TableRow key={job.id} className="border-white/10 hover:bg-white/5 transition-colors">
                   <TableCell>
                     <Checkbox
-                      checked={selectedJobs.includes(job.id)}
+                      checked={selectedJobs.current.includes(job.id)}
                       onCheckedChange={(checked) => handleSelectJob(job.id, checked as boolean)}
                       className="border-white/30 data-[state=checked]:bg-white data-[state=checked]:text-black"
                     />
@@ -267,7 +273,7 @@ export default function JobTracker() {
         {/* Pagination */}
         <div className="flex items-center justify-between mt-4">
           <div className="text-white/60 text-sm">
-            {selectedJobs.length} of {filteredJobs.length} row(s) selected.
+            {selectedJobs.current.length} of {filteredJobs.length} row(s) selected.
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
