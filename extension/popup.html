@@ -127,7 +127,7 @@
   <div class="container">
     <div class="logo">
       <img src="https://avatars.githubusercontent.com/u/62596924?v=4" id="logo-img"/>
-      <h3 id="header">Track an application</h3>
+      <h2 id="header">Track an application</h3>
     </div>
     
     <div class="input-group">
@@ -151,8 +151,14 @@
     </div>
     
     <div id="statusMsg" style="display:none; color:#fff; text-align:center; margin-bottom:10px;"></div>
-    <button class="submit" id="submit">Save</button>
-    <button id="settingsBtn" style="margin-top:10px;">Settings</button>
+    
+    <div id="supabaseKeySection" class="input-group" style="display:none;">
+      <label class="label">Supabase Secret Key</label>
+      <input class="input-field" id="supabaseKeyInput" placeholder="Paste your Supabase key here" type="password" />
+      <button class="submit" id="saveSupabaseKeyBtn" style="margin-top:8px;">Save Key</button>
+    </div>
+    
+    <button class="submit" id="submit" disabled>Save</button>
   </div>
   
   <script src="popup.js"></script>
