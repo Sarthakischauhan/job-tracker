@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef } from "react"
 import { createClient } from "@supabase/supabase-js"
-import { Plus, Search, ExternalLink, MoreHorizontal, ArrowUpDown } from "lucide-react"
+import { ExternalLink, MoreHorizontal, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -17,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { ViewHeader } from "@/components/view-header/view-header"
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -136,31 +136,7 @@ export default function JobTracker() {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold">Job Applications</h1>
-            <p className="text-white/60 text-sm mt-1">Track and manage your job applications</p>
-          </div>
-          {/* <Button className="bg-white text-black hover:bg-white/90 text-sm">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Job
-          </Button> */}
-        </div>
-
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 w-4 h-4" />
-            <Input
-              placeholder="Search jobs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-transparent border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
-            />
-          </div>
-        </div>
-
+        <ViewHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         {/* Table */}
         <div className="border border-white/20 rounded-lg overflow-hidden">
           <Table>
