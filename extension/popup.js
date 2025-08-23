@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const url = tab.url;
-  document.getElementById("url").value = url;
 
   const submitBtn = document.getElementById("submit");
   const supabaseKeySection = document.getElementById("supabaseKeySection");
@@ -44,27 +43,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // On popup open, try to restore any saved form data
-  const formFields = ["jobTitle", "company", "description", "url"];
+  const field = "description";
   chrome.storage.local.get(["jobFormDraft"], (result) => {
     if (result.jobFormDraft) {
       const draft = result.jobFormDraft;
-      formFields.forEach((field) => {
-        if (draft[field]) {
-          document.getElementById(field).value = draft[field];
-        }
-      });
+      if (draft[field]) {
+        document.getElementById(field).value = draft[field];
+      }
     }
   });
 
   // Save form data on input change
-  formFields.forEach((field) => {
-    document.getElementById(field).addEventListener("input", () => {
-      const draft = {};
-      formFields.forEach((f) => {
-        draft[f] = document.getElementById(f).value;
-      });
-      chrome.storage.local.set({ jobFormDraft: draft });
-    });
+  document.getElementById(field).addEventListener("focusout", () => {
+    const draft = {};
+    draft[field] = document.getElementById(field).value;
+    chrome.storage.local.set({ jobFormDraft: draft });
   });
 
   chrome.storage.local.get(["jobDescriptionFromContext"], (result) => {
@@ -78,57 +71,45 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Button click handler
   submitBtn.addEventListener("click", async () => {
-    const jobTitle = document.getElementById("jobTitle").value;
-    const company = document.getElementById("company").value;
     const description = document.getElementById("description").value;
-    const url = document.getElementById("url").value;
 
     statusMsg.textContent = "Adding to database...";
     statusMsg.style.display = "block";
     statusMsg.style.color = "#fff";
 
     const data = {
-      jobTitle,
-      company,
       url,
       description,
       createdAt: new Date().toISOString()
     };
 
-    const SUPABASE_EDGE_FUNCTION_URL = "https://sbnxomibyyhfcvpnfcwu.supabase.co/functions/v1/application-tracker";
+    // Import the centralized function
+    const { addJobToSupabase } = await import(chrome.runtime.getURL('utils/add_data.js'));
 
-    chrome.storage.sync.get(['supabaseKey'], async (result) => {
-      const supabaseKey = result.supabaseKey;
-      if (!supabaseKey) {
-        statusMsg.textContent = "Supabase key not found. Please add it first.";
-        statusMsg.style.color = "#f44336";
-        return;
-      }
-      try {
-        const response = await fetch(SUPABASE_EDGE_FUNCTION_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseKey}`,
-            "apikey": supabaseKey
-          },
-          body: JSON.stringify(data)
-        });
-        if (response.ok) {
+    try {
+      await addJobToSupabase(data, {
+        showNotification: false,
+        onSuccess: () => {
           statusMsg.textContent = "Job submitted and being analyzed!";
           statusMsg.style.color = "#4caf50";
-        } else {
-          statusMsg.textContent = "Failed to submit job.";
+        },
+        onError: (error) => {
+          if (error === 'Supabase key not found. Please add it first.') {
+            statusMsg.textContent = "Supabase key not found. Please add it first.";
+          } else {
+            statusMsg.textContent = "Failed to submit job.";
+          }
           statusMsg.style.color = "#f44336";
         }
-      } catch (e) {
-        statusMsg.textContent = "Error connecting to database.";
-        statusMsg.style.color = "#f44336";
-      }
-      setTimeout(() => {
-        statusMsg.style.display = "none";
-        statusMsg.style.color = "";
-      }, 2500);
-    });
+      });
+    } catch (error) {
+      statusMsg.textContent = `Error connecting to database ${error}`;
+      statusMsg.style.color = "#f44336";
+    }
+    
+    setTimeout(() => {
+      statusMsg.style.display = "none";
+      statusMsg.style.color = "";
+    }, 2500);
   });
-});
+})
