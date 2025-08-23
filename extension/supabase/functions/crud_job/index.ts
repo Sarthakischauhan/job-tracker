@@ -3,10 +3,11 @@
 // This enables autocomplete, go to definition, etc.
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import getJobDetails from "./inference.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getJobDetails} from "./inference.ts";
+import { JobDataProps, InferenceReturnProps } from "./types.ts";
 
-const corsHeaders = {
+const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
@@ -19,42 +20,41 @@ Deno.serve(async (req)=>{
   }
 
   try {
-    const { jobTitle, company, description, url } = await req.json();
+    const { description, url, createdAt} = await req.json();
     
-    // Fixed validation logic (was using bitwise OR instead of logical OR)
-    if (!jobTitle || !company) {
-      throw new Error("Job Title and Company name are required");
-    }
-
     // Initialize Supabase client
     const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
     const openaiApiKey = Deno.env.get('OPEN_AI_KEY');
 
-    // Process with OpenAI if description exists and API key is available
-    let aiAnalysis = null;
-   
-    if (description && description.length > 50 && openaiApiKey) {
-      console.log('Processing job description with AI...');
-      aiAnalysis = await getJobDetails(openaiApiKey, description);
-    } else {
-      console.log('Skipping AI analysis - missing description or API key');
+    if (!openaiApiKey){
+      throw new Error("Cannot proceed without an Open AI API key");
     }
-   
-    // Prepare job data for database
-    const jobData = {
-      job_title: jobTitle,
-      company: company,
-      description: description || null,
-      job_url: url || null,
-      applied_at: new Date().toISOString(),
-      // job summary by AI 
-      required_skills: aiAnalysis?.skillsRequired || [],
-      preferred_skills: aiAnalysis?.skillsPreferred || [],
-      experience_level: aiAnalysis?.experienceRequired || null,
-      salary_range: aiAnalysis?.salaryRange || null,
-      remote_option: aiAnalysis?.remote ? 'remote' : 'onsite',
-      ai_summary: aiAnalysis?.jobDesc || null
+    
+    // Let's do some checks 
+    if (!description && description.length < 50) {
+      throw new Error("Job description is needed for tracking")
+    }
+    let jobData: JobDataProps = {
+      description: description, 
+      applied_at: createdAt,
+      job_url: url,
     };
+    const aiAnalysis: InferenceReturnProps | null = await getJobDetails(openaiApiKey, description);
+
+    if (aiAnalysis){
+      jobData = {
+        ...jobData, 
+        // job summary by AI 
+        job_title: aiAnalysis?.jobTitle,
+        company: aiAnalysis?.company,
+        required_skills: aiAnalysis?.skillsRequired,
+        preferred_skills: aiAnalysis?.skillsPreferred,
+        experience_level: aiAnalysis?.experienceRequired,
+        salary_range: aiAnalysis?.salaryRange,
+        remote_option: aiAnalysis?.remote,
+        ai_summary: aiAnalysis?.jobDesc
+      };
+    } 
    
     // Save to Supabase
     const { data, error } = await supabase.from('job_applications').insert([
