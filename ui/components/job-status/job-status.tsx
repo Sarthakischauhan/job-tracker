@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/dialog"
 import { JobStatus } from "@/types/jobTypes"
 import { Dispatch, SetStateAction } from "react"
-import { updateJobStatus } from "@/lib/jobs"
 import { getStatusEmoji } from "@/lib/utils"
 
 type JobStatusDialogProp = {
@@ -24,7 +23,18 @@ export const JobStatusDialog = (
         if (!currentJobId) return;
         
         try {
-            await updateJobStatus(currentJobId, newStatus);
+            const response = await fetch(`/api/jobs/${currentJobId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: newStatus }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update job status');
+            }
+            
             setOpenJobStatus(null);
             onStatusUpdate?.();
         } catch (error) {
@@ -41,7 +51,7 @@ export const JobStatusDialog = (
                     </DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-row justify-center gap-5">
-                    {(["applied", "interview", "OA", "rejected"] as JobStatus[]).map((status) => (
+                    {(["applied", "interview", "oa", "rejected"] as JobStatus[]).map((status) => (
                         <div className="flex flex-col justify-center">
                             <button
                                 key={status}

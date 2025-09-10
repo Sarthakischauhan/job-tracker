@@ -1,5 +1,6 @@
 type JobApplication = {
   id: string
+  user_id?: string
   job_title: string
   company: string
   description: string | null
@@ -15,7 +16,7 @@ type JobApplication = {
   status: JobStatus
 }
 
-type JobStatus = "applied" | "rejected" | "interview" | "OA"
+type JobStatus = "applied" | "rejected" | "interview" | "oa"
 
 export type {
     JobApplication, 

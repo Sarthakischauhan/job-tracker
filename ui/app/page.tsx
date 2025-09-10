@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { createClient } from "@supabase/supabase-js"
 import { ExternalLink, MoreHorizontal, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,11 +14,9 @@ import { JobApplication, JobStatus } from "@/types/jobTypes"
 import { formatDate, getSkillColor, getStatusEmoji } from "@/lib/utils"
 import { JobStatusDialog } from "@/components/job-status/job-status"
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-
-
 export default function JobTracker() {
   const [jobs, setJobs] = useState<JobApplication[]>([])
+  const [activeJobs, setActiveJobs] = useState<number>(0);
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const selectedJobs= useRef<string[]>([])
@@ -36,13 +33,13 @@ export default function JobTracker() {
 
   const fetchJobs = async () => {
     try {
-      const { data, error } = await supabase
-        .from("job_applications")
-        .select("*")
-        .order("applied_at", { ascending: false })
-
-      if (error) throw error
-      setJobs(data || [])
+      const response = await fetch('/api/jobs')
+      if (!response.ok) {
+        throw new Error('Failed to fetch jobs')
+      }
+      const result = await response.json()
+      setJobs(result.data?.jobs || [])
+      setActiveJobs(result.data?.active)
     } catch (error) {
       console.error("Error fetching jobs:", error)
     } finally {
@@ -91,7 +88,7 @@ export default function JobTracker() {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto p-6">
-        <ViewHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <ViewHeader activeJobs={activeJobs} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         {/* Table */}
         <div className="border border-white/20 rounded-lg overflow-hidden">
           <Table>

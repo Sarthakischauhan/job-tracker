@@ -38,7 +38,7 @@ export function getSkillColor(skill: string): string {
 const statusEmojiMap: Record<JobStatus, string> = {
   "applied": "🙏🏻",
   "interview": "🚀", 
-  "OA": "🥸",
+  "oa": "🥸",
   "rejected": "😭"
 }
 
